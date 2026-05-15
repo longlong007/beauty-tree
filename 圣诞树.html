@@ -256,7 +256,7 @@
       <label class="upload-button" for="photo-input">ADD MEMORIES</label>
       <input id="photo-input" type="file" accept="image/*" multiple />
       <!-- 键盘快捷键提示 -->
-      <p class="hint">H Hide · 1 Tree · 2 Scatter · 3 Focus · Space Cycle</p>
+      <p class="hint">H Hide · 1 Tree · 2 Scatter · 3 Focus · Space Cycle · Drag to Rotate · Scroll to Zoom</p>
     </div>
   </main>
 
@@ -489,6 +489,13 @@
         // ========== 对象引用 ==========
         this.particles = [];  // HolidayParticle数组，管理所有粒子
         this.photos = [];     // 照片对象数组（仅FOCUS模式使用）
+
+        // ========== 拖拽控制 ==========
+        this.isDragging = false;           // 是否正在拖拽
+        this.dragStart = { x: 0, y: 0 };   // 拖拽开始位置
+        this.dragRotation = { x: 0, y: 0 }; // 拖拽开始时的旋转角度
+        this.targetZoom = 50;              // 目标缩放距离
+        this.currentZoom = 50;             // 当前缩放距离
 
         // ========== MediaPipe手势识别 ==========
         this.handLandmarker = null;  // HandLandmarker实例
@@ -1091,6 +1098,7 @@
        * - window.resize：窗口大小改变
        * - keydown：键盘控制
        * - pointermove：鼠标移动（备用控制）
+       * - pointerdown/pointerup/pointercancel：拖拽旋转
        * - change：文件上传
        */
       bindEvents() {
@@ -1102,7 +1110,43 @@
         window.addEventListener("pointermove", (event) => {
           this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
           this.mouse.y = (event.clientY / window.innerHeight) * 2 - 1;
+
+          // 拖拽旋转
+          if (this.isDragging) {
+            const deltaX = event.clientX - this.dragStart.x;
+            const deltaY = event.clientY - this.dragStart.y;
+            this.mainGroup.rotation.y = this.dragRotation.y + deltaX * 0.005;
+            this.mainGroup.rotation.x = this.dragRotation.x + deltaY * 0.005;
+            // 限制X轴旋转范围
+            this.mainGroup.rotation.x = THREE.MathUtils.clamp(this.mainGroup.rotation.x, -Math.PI / 3, Math.PI / 3);
+          }
         });
+        // 鼠标按下开始拖拽
+        window.addEventListener("pointerdown", (event) => {
+          // 忽略点击在UI元素上的事件
+          if (event.target.closest("#ui") || event.target.closest(".upload-wrapper")) {
+            return;
+          }
+          this.isDragging = true;
+          this.dragStart = { x: event.clientX, y: event.clientY };
+          this.dragRotation = { x: this.mainGroup.rotation.x, y: this.mainGroup.rotation.y };
+          document.body.style.cursor = "grabbing";
+        });
+        // 鼠标释放结束拖拽
+        window.addEventListener("pointerup", () => {
+          this.isDragging = false;
+          document.body.style.cursor = "";
+        });
+        window.addEventListener("pointercancel", () => {
+          this.isDragging = false;
+          document.body.style.cursor = "";
+        });
+        // 鼠标滚轮缩放
+        window.addEventListener("wheel", (event) => {
+          event.preventDefault();
+          this.targetZoom += event.deltaY * 0.05;
+          this.targetZoom = THREE.MathUtils.clamp(this.targetZoom, 30, 80);
+        }, { passive: false });
         // 文件上传
         this.input.addEventListener("change", (event) => {
           // 遍历所有选择的文件
@@ -1255,25 +1299,32 @@
       updateScene(delta, elapsed) {
         this.updateVision(); // 处理手势
 
-        // 计算目标旋转角度
-        // 优先使用手势（手掌位置），次要使用鼠标
-        const palmX = THREE.MathUtils.clamp(STATE.gesture.palm.x, 0, 1);
-        const palmY = THREE.MathUtils.clamp(STATE.gesture.palm.y, 0, 1);
-        const fallbackX = this.mouse.x * 0.08;  // 鼠标影响较小（仅作备用）
-        const fallbackY = this.mouse.y * 0.05;
+        // 如果正在拖拽，不进行平滑插值（拖拽时直接控制）
+        if (!this.isDragging) {
+          // 计算目标旋转角度
+          // 优先使用手势（手掌位置），次要使用鼠标
+          const palmX = THREE.MathUtils.clamp(STATE.gesture.palm.x, 0, 1);
+          const palmY = THREE.MathUtils.clamp(STATE.gesture.palm.y, 0, 1);
+          const fallbackX = this.mouse.x * 0.08;  // 鼠标影响较小（仅作备用）
+          const fallbackY = this.mouse.y * 0.05;
 
-        // 计算综合目标旋转
-        const targetRotY = (0.5 - palmX) * 0.9 + fallbackX + STATE.keyboard.rotation.x;
-        const targetRotX = (0.5 - palmY) * 0.36 + fallbackY + STATE.keyboard.rotation.y;
+          // 计算综合目标旋转
+          const targetRotY = (0.5 - palmX) * 0.9 + fallbackX + STATE.keyboard.rotation.x;
+          const targetRotX = (0.5 - palmY) * 0.36 + fallbackY + STATE.keyboard.rotation.y;
 
-        // 平滑插值旋转（lerp系数0.05）
-        this.mainGroup.rotation.y = THREE.MathUtils.lerp(this.mainGroup.rotation.y, targetRotY, 0.05);
-        this.mainGroup.rotation.x = THREE.MathUtils.lerp(this.mainGroup.rotation.x, targetRotX, 0.05);
+          // 平滑插值旋转（lerp系数0.05）
+          this.mainGroup.rotation.y = THREE.MathUtils.lerp(this.mainGroup.rotation.y, targetRotY, 0.05);
+          this.mainGroup.rotation.x = THREE.MathUtils.lerp(this.mainGroup.rotation.x, targetRotX, 0.05);
+        }
 
         // 更新所有粒子
         this.particles.forEach((particle) =>
           particle.update(delta, elapsed, STATE.mode, STATE.focusPhoto)
         );
+
+        // 平滑缩放
+        this.currentZoom = THREE.MathUtils.lerp(this.currentZoom, this.targetZoom, 0.05);
+        this.camera.position.z = this.currentZoom;
 
         // 灰尘粒子缓慢旋转（产生星光闪烁效果）
         this.dust.rotation.y += delta * 0.018;
