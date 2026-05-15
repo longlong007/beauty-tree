@@ -212,6 +212,55 @@
     }
 
     /* ============================================
+       背景音乐控制按钮
+       ============================================ */
+    #music-toggle {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 15;
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(212, 175, 55, 0.7);
+      border-radius: 50%;
+      background: rgba(10, 10, 10, 0.5);
+      color: var(--gold);
+      cursor: pointer;
+      font-size: 18px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+    }
+
+    #music-toggle:hover {
+      transform: scale(1.1);
+      border-color: var(--cream);
+      background: rgba(212, 175, 55, 0.2);
+    }
+
+    #music-toggle.playing {
+      border-color: var(--gold);
+      box-shadow: 0 0 14px rgba(212, 175, 55, 0.5);
+    }
+
+    /* 音符图标动画 */
+    #music-toggle .note {
+      display: inline-block;
+      transition: transform 200ms ease;
+    }
+
+    #music-toggle.playing .note {
+      animation: bounce 600ms ease infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+    }
+
+    /* ============================================
        摄像头容器 - 用于手势识别（隐藏显示）
        ============================================ */
     #webcam-container {
@@ -248,6 +297,11 @@
     </div>
   </div>
 
+  <!-- 背景音乐控制 -->
+  <button id="music-toggle" title="Toggle Music">
+    <span class="note">♪</span>
+  </button>
+
   <!-- 主UI层：标题 + 上传按钮 -->
   <main id="ui">
     <h1>Merry Christmas</h1>
@@ -256,7 +310,7 @@
       <label class="upload-button" for="photo-input">ADD MEMORIES</label>
       <input id="photo-input" type="file" accept="image/*" multiple />
       <!-- 键盘快捷键提示 -->
-      <p class="hint">H Hide · 1 Tree · 2 Scatter · 3 Focus · Space Cycle · Drag to Rotate · Scroll to Zoom · Click to Explode</p>
+      <p class="hint">H Hide · M Music · 1 Tree · 2 Scatter · 3 Focus · Space Cycle · Drag to Rotate · Scroll to Zoom · Click to Explode</p>
     </div>
   </main>
 
@@ -501,6 +555,10 @@
         this.handLandmarker = null;  // HandLandmarker实例
         this.lastVideoTime = -1;      // 用于判断视频帧是否更新（避免重复处理）
 
+        // ========== 背景音乐 ==========
+        this.audio = null;            // 音频对象
+        this.audioEnabled = false;    // 音频是否启用
+
         // ========== Three.js核心对象 ==========
         this.mainGroup = new THREE.Group();  // 包含所有粒子的父对象（用于整体旋转）
         this.tmpRotation = new THREE.Euler(); // 临时旋转对象（避免每帧频繁创建）
@@ -521,9 +579,71 @@
         this.createDust();         // 创建2500个金色灰尘粒子
         this.createSnow();        // 创建雪花飘落效果
         this.bindEvents();         // 绑定窗口调整、键盘、鼠标、上传事件
+        this.initAudio();          // 初始化背景音乐
         await this.initVision();   // 初始化手势识别（可能失败不阻塞）
         this.loader.classList.add("fade-out"); // 隐藏加载动画
         this.animate();            // 启动渲染循环
+      }
+
+      /**
+       * 初始化背景音乐
+       * 使用 Web Audio API 加载并控制圣诞音乐
+       */
+      initAudio() {
+        const musicBtn = document.getElementById("music-toggle");
+
+        // 创建音频上下文（首次交互时启用）
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+
+        // 尝试加载圣诞音乐（使用公共CDN）
+        const audio = new Audio();
+        audio.crossOrigin = "anonymous";
+
+        // 圣诞音乐 - jingle bells 风格
+        // 使用免费音乐资源
+        audio.src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+        audio.loop = true;
+        audio.volume = 0.5;
+
+        // 存储引用
+        this.audio = audio;
+        this.audioCtx = audioCtx;
+        this.isPlaying = false;
+
+        // 点击按钮切换播放
+        musicBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+
+          // 如果音频上下文暂停，恢复它
+          if (audioCtx.state === "suspended") {
+            audioCtx.resume();
+          }
+
+          if (this.isPlaying) {
+            audio.pause();
+            musicBtn.classList.remove("playing");
+            this.isPlaying = false;
+          } else {
+            audio.play().then(() => {
+              musicBtn.classList.add("playing");
+              this.isPlaying = true;
+            }).catch(err => {
+              console.warn("Audio playback failed:", err);
+            });
+          }
+        });
+
+        // 页面离开时暂停
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden && this.isPlaying) {
+            audio.pause();
+            musicBtn.classList.remove("playing");
+          } else if (!document.hidden && this.isPlaying) {
+            audio.play();
+            musicBtn.classList.add("playing");
+          }
+        });
       }
 
       // ========== 渲染器初始化 ==========
@@ -1189,7 +1309,7 @@
           "t", "s", "f",     // 字母切换模式
           " ",               // 空格循环
           "arrowleft", "arrowright", "arrowup", "arrowdown", // 方向键旋转
-          "r", "h"           // 重置和隐藏
+          "r", "h", "m"           // 重置、隐藏和音乐
         ];
 
         if (!handledKeys.includes(key)) {
@@ -1235,6 +1355,12 @@
         if (key === "r") {
           STATE.keyboard.rotation.set(0, 0);
           this.setMode(MODES.TREE);
+          return;
+        }
+
+        // M：切换音乐播放
+        if (key === "m") {
+          document.getElementById("music-toggle").click();
           return;
         }
 
