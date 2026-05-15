@@ -519,6 +519,7 @@
         this.setupPostProcessing(); // 配置后处理（Bloom辉光效果）
         this.createContent();      // 生成1500个粒子内容
         this.createDust();         // 创建2500个金色灰尘粒子
+        this.createSnow();        // 创建雪花飘落效果
         this.bindEvents();         // 绑定窗口调整、键盘、鼠标、上传事件
         await this.initVision();   // 初始化手势识别（可能失败不阻塞）
         this.loader.classList.add("fade-out"); // 隐藏加载动画
@@ -797,6 +798,168 @@
 
         this.dust = new THREE.Points(geometry, material);
         this.scene.add(this.dust);
+      }
+
+      // ========== 创建雪花飘落效果 ==========
+      /**
+* 生成飘落的雪花粒子
+      * 使用白色加法混合粒子，模拟雪花从天而降的效果
+      */
+      createSnow() {
+        const count = 400; // 减少数量，每片更大更唯美
+        const positions = new Float32Array(count * 3);
+        const sizes = new Float32Array(count);
+        const speeds = new Float32Array(count);
+        const phases = new Float32Array(count); // 摇摆相位
+        const rotSpeeds = new Float32Array(count); // 旋转速度
+
+        for (let i = 0; i < count; i++) {
+          // 随机分布在场景上方，更广的范围
+          positions[i * 3] = THREE.MathUtils.randFloatSpread(120);
+          positions[i * 3 + 1] = THREE.MathUtils.randFloat(-30, 70);
+          positions[i * 3 + 2] = THREE.MathUtils.randFloatSpread(120);
+          sizes[i] = THREE.MathUtils.randFloat(0.4, 1.2); // 唯美大片雪花
+          speeds[i] = THREE.MathUtils.randFloat(0.15, 0.4); // 慢慢飘落
+          phases[i] = Math.random() * Math.PI * 2; // 随机摇摆相位
+          rotSpeeds[i] = THREE.MathUtils.randFloat(0.2, 0.8); // 慢速旋转
+        }
+
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
+        geometry.setAttribute("speed", new THREE.BufferAttribute(speeds, 1));
+        geometry.setAttribute("phase", new THREE.BufferAttribute(phases, 1));
+        geometry.setAttribute("rotSpeed", new THREE.BufferAttribute(rotSpeeds, 1));
+
+        // 使用Sprite材质实现柔美的圆形雪花
+        const material = new THREE.PointsMaterial({
+          size: 0.8,
+          color: 0xffffff,
+          transparent: true,
+          opacity: 0.7,
+          blending: THREE.NormalBlending,
+          depthWrite: false,
+          sizeAttenuation: true
+        });
+
+        this.snow = new THREE.Points(geometry, material);
+        this.scene.add(this.snow);
+
+        // 创建雪花纹理（柔和发光效果）
+        this.snowTexture = this.createSnowTexture();
+        this.snow.material.map = this.snowTexture;
+        this.snow.material.needsUpdate = true;
+      }
+
+      // ========== 创建唯美雪花纹理 ==========
+      createSnowTexture() {
+        const canvas = document.createElement("canvas");
+        canvas.width = 128;
+        canvas.height = 128;
+        const ctx = canvas.getContext("2d");
+        const cx = 64, cy = 64;
+
+        // 绘制六角形雪花主体
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
+        ctx.lineWidth = 2;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+
+        // 六个方向：0°, 60°, 120°, 180°, 240°, 300°
+        for (let i = 0; i < 6; i++) {
+          const angle = (i * 60) * Math.PI / 180;
+          const length = 50;
+
+          // 主枝干
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(cx + Math.cos(angle) * length, cy + Math.sin(angle) * length);
+          ctx.stroke();
+
+          // 每个枝干上的侧枝（简化六角形结构）
+          const branchLen = 18;
+          const branchPos = 0.65; // 侧枝位置比例
+
+          // 左枝
+          const leftAngle = angle + Math.PI / 3;
+          const bx1 = cx + Math.cos(angle) * length * branchPos;
+          const by1 = cy + Math.sin(angle) * length * branchPos;
+          ctx.beginPath();
+          ctx.moveTo(bx1, by1);
+          ctx.lineTo(bx1 + Math.cos(leftAngle) * branchLen, by1 + Math.sin(leftAngle) * branchLen);
+          ctx.stroke();
+
+          // 右枝
+          const rightAngle = angle - Math.PI / 3;
+          ctx.beginPath();
+          ctx.moveTo(bx1, by1);
+          ctx.lineTo(bx1 + Math.cos(rightAngle) * branchLen, by1 + Math.sin(rightAngle) * branchLen);
+          ctx.stroke();
+        }
+
+        // 中心六边形
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+          const angle = (i * 60 - 30) * Math.PI / 180;
+          const x = cx + Math.cos(angle) * 12;
+          const y = cy + Math.sin(angle) * 12;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.stroke();
+
+        // 外圈淡光晕（柔和边缘）
+        const gradient = ctx.createRadialGradient(cx, cy, 30, cx, cy, 64);
+        gradient.addColorStop(0, "rgba(255, 255, 255, 0)");
+        gradient.addColorStop(0.7, "rgba(255, 255, 255, 0.05)");
+        gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 128, 128);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        return texture;
+      }
+
+      // ========== 更新雪花位置 ==========
+      /**
+       * 更新雪花位置，实现唯美慢飘落动画
+       * 雪花带有自然摇摆和缓慢旋转效果
+       */
+      updateSnow(delta, elapsed) {
+        if (!this.snow) return;
+
+        const positions = this.snow.geometry.attributes.position.array;
+        const speeds = this.snow.geometry.attributes.speed.array;
+        const phases = this.snow.geometry.attributes.phase.array;
+        const count = positions.length / 3;
+
+        for (let i = 0; i < count; i++) {
+          // 极慢的下降速度，营造悠然飘落感
+          const baseSpeed = speeds[i] * delta * 2;
+          positions[i * 3 + 1] -= baseSpeed;
+
+          // 自然摇摆：使用正弦函数实现优雅的左右飘动
+          const swingAmount = 0.3 + speeds[i] * 0.5;
+          const swingSpeed = 0.3 + elapsed * 0.1;
+          positions[i * 3] += Math.sin(swingSpeed + phases[i]) * delta * swingAmount;
+          positions[i * 3 + 2] += Math.cos(swingSpeed * 0.7 + phases[i]) * delta * swingAmount * 0.5;
+
+          // 落到下限后重置到上方（随机位置）
+          if (positions[i * 3 + 1] < -35) {
+            positions[i * 3 + 1] = 70;
+            positions[i * 3] = THREE.MathUtils.randFloatSpread(120);
+            positions[i * 3 + 2] = THREE.MathUtils.randFloatSpread(120);
+            phases[i] = Math.random() * Math.PI * 2; // 重置摇摆相位
+          }
+        }
+
+        this.snow.geometry.attributes.position.needsUpdate = true;
+
+        // 雪花整体缓慢旋转
+        this.snow.rotation.y += delta * 0.02;
       }
 
       // ========== 拐棍糖几何体 ==========
@@ -1329,6 +1492,9 @@
         // 灰尘粒子缓慢旋转（产生星光闪烁效果）
         this.dust.rotation.y += delta * 0.018;
         this.dust.rotation.x = Math.sin(elapsed * 0.11) * 0.035;
+
+        // 更新雪花飘落
+        this.updateSnow(delta, elapsed);
       }
 
       // ========== 渲染循环 ==========
