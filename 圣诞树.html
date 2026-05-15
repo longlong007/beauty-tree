@@ -832,6 +832,7 @@
           if (i % 115 === 0) {
             const photoTexture = this.createDefaultPhotoTexture();
             mesh = this.createPhotoFrame(photoTexture);
+            mesh.userData.isDefaultPhoto = true; // 标记为默认占位（上传时优先替换）
             type = "PHOTO";
             this.photos.push(mesh);
           }
@@ -1237,10 +1238,31 @@
        * @param {THREE.Texture} texture - 照片纹理
        */
       addPhotoToScene(texture) {
+        // 优先复用未被替换的默认占位相框：直接替换其贴图
+        const placeholder = this.photos.find((p) => p.userData.isDefaultPhoto);
+        if (placeholder) {
+          const imageMesh = placeholder.children[0]; // createPhotoFrame 中第一个子项是照片平面
+          if (imageMesh?.material) {
+            const oldMap = imageMesh.material.map;
+            imageMesh.material.map = texture;
+            imageMesh.material.needsUpdate = true;
+            // 释放旧占位贴图，避免内存泄漏
+            if (oldMap && oldMap !== texture) {
+              oldMap.dispose();
+            }
+          }
+          placeholder.userData.isDefaultPhoto = false;
+
+          STATE.focusPhoto = placeholder;
+          STATE.mode = MODES.FOCUS;
+          return;
+        }
+
+        // 默认占位已被替换完，创建新的相框追加到场景
         const mesh = this.createPhotoFrame(texture);
+        mesh.userData.isDefaultPhoto = false;
         this.mainGroup.add(mesh);
 
-        // 创建粒子并初始位置到散开位置（开场动画用）
         const particle = new HolidayParticle(
           mesh, "PHOTO",
           this.particles.length,
@@ -1250,7 +1272,6 @@
         this.particles.push(particle);
         this.photos.push(mesh);
 
-        // 切换到聚焦模式并聚焦新照片
         STATE.focusPhoto = mesh;
         STATE.mode = MODES.FOCUS;
       }
