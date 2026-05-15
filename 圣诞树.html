@@ -593,19 +593,11 @@
       initAudio() {
         const musicBtn = document.getElementById("music-toggle");
 
-        // 创建音频上下文（首次交互时启用）
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        this.audioCtx = new AudioContext();
-
-        // 尝试加载圣诞音乐（使用公共CDN）
+        // 创建音频对象
         const audio = new Audio();
-        audio.crossOrigin = "anonymous";
-
-        // 圣诞音乐 - 使用免费音乐资源
-        // Pixabay 上的免费圣诞音乐
-        audio.src = "https://cdn.pixabay.com/download/audio/2022/12/07/audio_944b6af9a4.mp3?filename=christmas-piano-1990.mp3";
+        audio.src = "./merry.mp3";
         audio.loop = true;
-        audio.volume = 0.4;
+        audio.volume = 0.5;
 
         // 存储引用
         this.audio = audio;
@@ -614,8 +606,14 @@
         musicBtn.addEventListener("click", (e) => {
           e.stopPropagation();
 
+          // 延迟创建音频上下文（确保在用户交互后）
+          if (!this.audioCtx) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            this.audioCtx = new AudioContext();
+          }
+
           // 如果音频上下文暂停，恢复它
-          if (this.audioCtx && this.audioCtx.state === "suspended") {
+          if (this.audioCtx.state === "suspended") {
             this.audioCtx.resume();
           }
 

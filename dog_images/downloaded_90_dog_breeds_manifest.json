@@ -1,0 +1,405 @@
+{
+  "downloaded": [],
+  "failed": [
+    [
+      "Affenpinscher",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Afghan Hound",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Airedale Terrier",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Akita (dog)",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Alaskan Malamute",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "American Cocker Spaniel",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "American Eskimo Dog",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "American Foxhound",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "American Pit Bull Terrier",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "American Staffordshire Terrier",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Australian Cattle Dog",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Australian Kelpie",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Australian Shepherd",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Australian Silky Terrier",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Australian Terrier",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Basenji",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Basset Hound",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Belgian Shepherd",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Bernese Mountain Dog",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Bichon Frisé",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Bloodhound",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Boerboel",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Bolognese dog",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Boston Terrier",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Boxer (dog)",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Brittany (dog)",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Bull Terrier",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Bullmastiff",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Cairn Terrier",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Cane Corso",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Cavalier King Charles Spaniel",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Chow Chow",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Clumber Spaniel",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Cocker Spaniel",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Collie",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Dalmatian (dog)",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Dobermann",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Dogue de Bordeaux",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "English Cocker Spaniel",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "English Foxhound",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "English Mastiff",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "English Setter",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "English Springer Spaniel",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Field Spaniel",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Finnish Spitz",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Flat-coated Retriever",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Fox Terrier",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "German Shorthaired Pointer",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "German Spitz",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Giant Schnauzer",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Great Dane",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Great Pyrenees",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Greyhound",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Havanese dog",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Irish Setter",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Irish Terrier",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Irish Wolfhound",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Italian Greyhound",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Jack Russell Terrier",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Japanese Chin",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Keeshond",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "King Charles Spaniel",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Komondor",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Kuvasz",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Lhasa Apso",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Maltese dog",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Manchester Terrier",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Maremmano-Abruzzese Sheepdog",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Miniature Pinscher",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Miniature Schnauzer",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Newfoundland dog",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Norfolk Terrier",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Norwegian Elkhound",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Norwich Terrier",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Old English Sheepdog",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Papillon dog",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Pekingese",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Pembroke Welsh Corgi",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Pointer (dog breed)",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Pomeranian dog",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Portuguese Water Dog",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Pug",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Rhodesian Ridgeback",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Rottweiler",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Saint Bernard (dog)",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Samoyed dog",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Schipperke",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Scottish Terrier",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Shar Pei",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Shetland Sheepdog",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Shiba Inu",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Shih Tzu",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Staffordshire Bull Terrier",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Tibetan Mastiff",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Tibetan Terrier",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Toy Fox Terrier",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Vizsla",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Weimaraner",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Welsh Terrier",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ],
+    [
+      "Whippet",
+      "URLError(PermissionError(1, 'Operation not permitted'))"
+    ]
+  ]
+}
