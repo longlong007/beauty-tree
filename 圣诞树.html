@@ -256,7 +256,7 @@
       <label class="upload-button" for="photo-input">ADD MEMORIES</label>
       <input id="photo-input" type="file" accept="image/*" multiple />
       <!-- 键盘快捷键提示 -->
-      <p class="hint">H Hide · 1 Tree · 2 Scatter · 3 Focus · Space Cycle · Drag to Rotate · Scroll to Zoom</p>
+      <p class="hint">H Hide · 1 Tree · 2 Scatter · 3 Focus · Space Cycle · Drag to Rotate · Scroll to Zoom · Click to Explode</p>
     </div>
   </main>
 
@@ -1310,6 +1310,8 @@
           this.targetZoom += event.deltaY * 0.05;
           this.targetZoom = THREE.MathUtils.clamp(this.targetZoom, 30, 80);
         }, { passive: false });
+        // 鼠标点击爆炸
+        window.addEventListener("click", (event) => this.handleClick(event));
         // 文件上传
         this.input.addEventListener("change", (event) => {
           // 遍历所有选择的文件
@@ -1326,6 +1328,154 @@
           // 清空input以允许重复选择同一文件
           event.target.value = "";
         });
+      }
+
+      // ========== 点击爆炸特效 ==========
+      /**
+       * 创建爆炸粒子效果
+       * @param {THREE.Vector3} position - 爆炸中心位置
+       * @param {THREE.Color} color - 爆炸颜色
+       */
+      createExplosion(position, color) {
+        const particleCount = 35;  // 爆炸粒子数量
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const velocities = [];  // 存储每个粒子的速度
+
+        for (let i = 0; i < particleCount; i++) {
+          positions[i * 3] = position.x;
+          positions[i * 3 + 1] = position.y;
+          positions[i * 3 + 2] = position.z;
+
+          // 随机方向向外爆发
+          const velocity = new THREE.Vector3(
+            THREE.MathUtils.randFloatSpread(2),
+            THREE.MathUtils.randFloatSpread(2),
+            THREE.MathUtils.randFloatSpread(2)
+          ).normalize().multiplyScalar(THREE.MathUtils.randFloat(0.8, 2.5));
+          velocities.push(velocity);
+        }
+
+        geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+
+        // 使用发光材质
+        const material = new THREE.PointsMaterial({
+          size: 0.3,
+          color: color,
+          transparent: true,
+          opacity: 1,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false
+        });
+
+        const explosion = new THREE.Points(geometry, material);
+        this.scene.add(explosion);
+
+        // 爆炸动画数据
+        const explosionData = {
+          particles: explosion,
+          velocities: velocities,
+          startTime: performance.now(),
+          duration: 900,  // 爆炸持续时间 ms
+          initialPositions: positions.slice()  // 保存初始位置
+        };
+
+        // 存储到爆炸数组
+        if (!this.explosions) this.explosions = [];
+        this.explosions.push(explosionData);
+
+        // 延迟移除爆炸粒子
+        setTimeout(() => {
+          this.scene.remove(explosion);
+          geometry.dispose();
+          material.dispose();
+          const index = this.explosions.indexOf(explosionData);
+          if (index > -1) this.explosions.splice(index, 1);
+        }, explosionData.duration + 100);
+      }
+
+      /**
+       * 更新所有爆炸效果
+       */
+      updateExplosions() {
+        if (!this.explosions) return;
+
+        const now = performance.now();
+
+        this.explosions.forEach(data => {
+          const elapsed = now - data.startTime;
+          const progress = Math.min(elapsed / data.duration, 1);
+
+          // 缓动函数：快速爆发然后减速
+          const eased = 1 - Math.pow(1 - progress, 3);
+
+          const positions = data.particles.geometry.attributes.position.array;
+          const count = positions.length / 3;
+
+          for (let i = 0; i < count; i++) {
+            const vel = data.velocities[i];
+            // 位置 = 初始位置 + 速度 * 缓动值 * 衰减
+            const decay = 1 - Math.pow(progress, 0.5);
+            positions[i * 3] = data.initialPositions[i * 3] + vel.x * eased * decay * 3;
+            positions[i * 3 + 1] = data.initialPositions[i * 3 + 1] + vel.y * eased * decay * 3;
+            positions[i * 3 + 2] = data.initialPositions[i * 3 + 2] + vel.z * eased * decay * 3;
+          }
+
+          data.particles.geometry.attributes.position.needsUpdate = true;
+
+          // 透明度渐变消失
+          data.particles.material.opacity = 1 - progress;
+          // 粒子逐渐变小
+          data.particles.material.size = 0.3 * (1 - progress * 0.5);
+        });
+      }
+
+      /**
+       * 处理点击爆炸效果
+       * @param {MouseEvent} event - 点击事件
+       */
+      handleClick(event) {
+        // 忽略点击在UI元素上的事件
+        if (event.target.closest("#ui") || event.target.closest(".upload-wrapper")) {
+          return;
+        }
+
+        // 将鼠标位置转换为归一化设备坐标
+        const mouse = new THREE.Vector2(
+          (event.clientX / window.innerWidth) * 2 - 1,
+          -(event.clientY / window.innerHeight) * 2 + 1
+        );
+
+        // 创建射线
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, this.camera);
+
+        // 检测与所有粒子的交叉
+        const meshes = this.particles.map(p => p.mesh);
+        const intersects = raycaster.intersectObjects(meshes, true);
+
+        if (intersects.length > 0) {
+          const hit = intersects[0];
+          const point = hit.point;
+
+          // 获取被点击粒子的颜色
+          let explosionColor = new THREE.Color(0xd4af37);  // 默认金色
+
+          // 尝试获取材质颜色
+          let object = hit.object;
+          while (object && !object.material) {
+            object = object.parent;
+          }
+          if (object?.material?.color) {
+            explosionColor = object.material.color.clone();
+          } else if (object?.material?.map) {
+            // 对于照片，使用金色
+            explosionColor = new THREE.Color(0xfceea7);
+          }
+
+          // 创建爆炸效果
+          this.createExplosion(point, explosionColor);
+        }
       }
 
       // ========== 手势识别初始化 ==========
@@ -1495,6 +1645,9 @@
 
         // 更新雪花飘落
         this.updateSnow(delta, elapsed);
+
+        // 更新爆炸特效
+        this.updateExplosions();
       }
 
       // ========== 渲染循环 ==========
