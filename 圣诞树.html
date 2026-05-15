@@ -557,7 +557,8 @@
 
         // ========== 背景音乐 ==========
         this.audio = null;            // 音频对象
-        this.audioEnabled = false;    // 音频是否启用
+        this.audioCtx = null;         // 音频上下文
+        this.isPlaying = false;       // 播放状态
 
         // ========== Three.js核心对象 ==========
         this.mainGroup = new THREE.Group();  // 包含所有粒子的父对象（用于整体旋转）
@@ -594,30 +595,28 @@
 
         // 创建音频上下文（首次交互时启用）
         const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContext();
+        this.audioCtx = new AudioContext();
 
         // 尝试加载圣诞音乐（使用公共CDN）
         const audio = new Audio();
         audio.crossOrigin = "anonymous";
 
-        // 圣诞音乐 - jingle bells 风格
-        // 使用免费音乐资源
-        audio.src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+        // 圣诞音乐 - 使用免费音乐资源
+        // Pixabay 上的免费圣诞音乐
+        audio.src = "https://cdn.pixabay.com/download/audio/2022/12/07/audio_944b6af9a4.mp3?filename=christmas-piano-1990.mp3";
         audio.loop = true;
-        audio.volume = 0.5;
+        audio.volume = 0.4;
 
         // 存储引用
         this.audio = audio;
-        this.audioCtx = audioCtx;
-        this.isPlaying = false;
 
         // 点击按钮切换播放
         musicBtn.addEventListener("click", (e) => {
           e.stopPropagation();
 
           // 如果音频上下文暂停，恢复它
-          if (audioCtx.state === "suspended") {
-            audioCtx.resume();
+          if (this.audioCtx && this.audioCtx.state === "suspended") {
+            this.audioCtx.resume();
           }
 
           if (this.isPlaying) {
