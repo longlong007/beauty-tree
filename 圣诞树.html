@@ -310,7 +310,7 @@
       <label class="upload-button" for="photo-input">ADD MEMORIES</label>
       <input id="photo-input" type="file" accept="image/*" multiple />
       <!-- 键盘快捷键提示 -->
-      <p class="hint">H Hide · M Music · 1 Tree · 2 Scatter · 3 Focus · Space Cycle · Drag to Rotate · Scroll to Zoom · Click to Explode</p>
+      <p class="hint">H Hide · M Music · 1 Tree · 2 Scatter · 3 Heart · 4 Focus · Space Cycle · Drag to Rotate · Scroll to Zoom · Click to Explode</p>
     </div>
   </main>
 
@@ -341,7 +341,7 @@
     // 整个应用共享的状态数据
     // ============================================
     const STATE = {
-      // 当前显示模式：TREE-树形 | SCATTER-散开 | FOCUS-聚焦
+      // 当前显示模式：TREE-树形 | SCATTER-散开 | FOCUS-聚焦 | HEART-心形
       mode: "TREE",
       // 手势状态
       gesture: {
@@ -363,7 +363,8 @@
     const MODES = {
       TREE: "TREE",       // 粒子排列成圣诞树形状
       SCATTER: "SCATTER", // 粒子向外空间散开
-      FOCUS: "FOCUS"     // 聚焦模式，单张照片放大显示
+      FOCUS: "FOCUS",     // 聚焦模式，单张照片放大显示
+      HEART: "HEART"      // 粒子整体排列成心形
     };
 
     // ============================================
@@ -400,9 +401,10 @@
           THREE.MathUtils.randFloat(0.006, 0.022)
         );
 
-        // 计算两种模式的目标位置
+        // 计算各展示模式的目标位置
         this.treeTarget = this.createTreeTarget();   // 树形排列目标
         this.scatterTarget = this.createScatterTarget(); // 散开目标
+        this.heartTarget = this.createHeartTarget(); // 心形排列目标
       }
 
       /**
@@ -456,6 +458,37 @@
       }
 
       /**
+       * 创建心形模式的目标位置
+       * 使用经典心形参数方程，并向内缩放生成填充感
+       */
+      createHeartTarget() {
+        const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+        const angle = this.index * goldenAngle;
+        const fill = Math.sqrt((this.index + 0.5) / Math.max(1, this.total));
+
+        // 经典心形曲线：先生成轮廓，再按fill向中心收拢，形成实心心形
+        const outlineX = 16 * Math.pow(Math.sin(angle), 3);
+        const outlineY =
+          13 * Math.cos(angle) -
+          5 * Math.cos(2 * angle) -
+          2 * Math.cos(3 * angle) -
+          Math.cos(4 * angle);
+
+        const edgeBias = THREE.MathUtils.lerp(0.22, 1, fill);
+        const jitter = new THREE.Vector3(
+          THREE.MathUtils.randFloatSpread(0.48),
+          THREE.MathUtils.randFloatSpread(0.42),
+          THREE.MathUtils.randFloatSpread(0.9)
+        );
+
+        return new THREE.Vector3(
+          outlineX * edgeBias * 1.02 + jitter.x,
+          outlineY * edgeBias * 1.05 - 1.5 + jitter.y,
+          Math.sin(angle * 2.5) * (1 - fill) * 4.5 + jitter.z
+        );
+      }
+
+      /**
        * 根据当前模式更新粒子的位置、旋转和缩放
        * @param {number} delta - 帧时间差
        * @param {number} elapsed - 总运行时间
@@ -478,6 +511,18 @@
           this.mesh.rotation.x += this.spin.x * delta * 60;
           this.mesh.rotation.y += this.spin.y * delta * 60;
           this.mesh.rotation.z += this.spin.z * delta * 60;
+        }
+
+        // ========== HEART 模式 ==========
+        if (mode === MODES.HEART) {
+          // 轻微呼吸感：整体保持心形，只在深度方向做很小的波动
+          target = this.heartTarget.clone();
+          target.z += Math.sin(elapsed * 1.8 + this.index * 0.08) * 0.32;
+          targetScale = this.baseScale.clone().multiplyScalar(this.type === "PHOTO" ? 0.84 : 0.96);
+
+          // 低速自转，让装饰物在心形中仍有生命力
+          this.mesh.rotation.y += this.spin.y * delta * 18;
+          this.mesh.rotation.z += this.spin.z * delta * 12;
         }
 
         // ========== FOCUS 模式 ==========
@@ -1279,7 +1324,7 @@
       // ========== 模式切换 ==========
       /**
        * 切换显示模式
-       * @param {string} mode - TREE | SCATTER | FOCUS
+       * @param {string} mode - TREE | SCATTER | FOCUS | HEART
        */
       setMode(mode) {
         STATE.mode = mode;
@@ -1302,10 +1347,10 @@
       }
 
       /**
-       * 循环切换模式：TREE → SCATTER → FOCUS → TREE
+       * 循环切换模式：TREE → SCATTER → HEART → FOCUS → TREE
        */
       cycleMode() {
-        const order = [MODES.TREE, MODES.SCATTER, MODES.FOCUS];
+        const order = [MODES.TREE, MODES.SCATTER, MODES.HEART, MODES.FOCUS];
         const nextIndex = (order.indexOf(STATE.mode) + 1) % order.length;
         this.setMode(order[nextIndex]);
       }
@@ -1314,7 +1359,7 @@
       /**
        * 处理键盘事件
        * 支持：
-       * - 1/2/3 或 T/S/F：切换到对应模式
+       * - 1/2/3/4 或 T/S/F：切换到对应模式
        * - 空格：循环切换模式
        * - 方向键：手动旋转视角
        * - H：隐藏/显示UI
@@ -1323,7 +1368,7 @@
       handleKeyboardControl(event) {
         const key = event.key.toLowerCase();
         const handledKeys = [
-          "1", "2", "3",     // 数字切换模式
+          "1", "2", "3", "4", // 数字切换模式
           "t", "s", "f",     // 字母切换模式
           " ",               // 空格循环
           "arrowleft", "arrowright", "arrowup", "arrowdown", // 方向键旋转
@@ -1357,8 +1402,14 @@
           return;
         }
 
-        // 3/F：FOCUS模式
-        if (key === "3" || key === "f") {
+        // 3：HEART模式
+        if (key === "3") {
+          this.setMode(MODES.HEART);
+          return;
+        }
+
+        // 4/F：FOCUS模式
+        if (key === "4" || key === "f") {
           this.setMode(MODES.FOCUS);
           return;
         }
